@@ -1,0 +1,7 @@
+The task is to build a Nuxt app / package that will act as a markdown website builder.
+Use markdown files from the content folder and generate pages with the content from those files. I must be able to use Nuxt / Vue components in the markdown files if I need to.
+Let's use a nice standard CSS framework for the UI. I like Tailwind CSS, but you can suggest something else if you want. You may make other UI choices but please specify the choices you make.
+
+In the end, I want to structure the app such that I can run a single command "<package> generate" that uses the content folder in the root of the project and have the app generate the website in the public folder. This is meant to be used in a Github Actions pipeline to publish a Github pages website.
+
+
