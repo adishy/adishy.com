@@ -1,8 +1,33 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from '@tailwindcss/vite'
+
 export default defineNuxtConfig({
-  compatibilityDate: '2024-11-01',
   modules: [
-    '@nuxt/content'
+    '@nuxt/content',
+    '@nuxt/icon',
+    '@nuxt/eslint',
+    '@nuxtjs/color-mode',
   ],
-  devtools: { enabled: true }
+
+  css: ['assets/css/main.css'],
+  colorMode: { classSuffix: '' },
+
+  content: {
+    build: {
+      markdown: {
+        highlight: {
+          // See the available themes on https://github.com/shikijs/shiki/blob/main/docs/themes.md#all-theme
+          theme: {
+            dark: 'github-dark',
+            default: 'github-light',
+          },
+        },
+      },
+    },
+  },
+  future: {
+    compatibilityVersion: 4,
+  },
+  compatibilityDate: '2025-02-19',
+
+  vite: { plugins: [tailwindcss()] },
 })

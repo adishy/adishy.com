@@ -6,7 +6,7 @@ CONTAINER_MOUNT_PATH="/usr/src/app"
 # Function to initialize a new Nuxt application
 init() {
   docker build -t $APP_NAME .
-  docker run -it --rm -v $(pwd):$CONTAINER_MOUNT_PATH -p 3000:3000 $APP_NAME npx nuxi init .
+  docker run -it --rm -v $(pwd):$CONTAINER_MOUNT_PATH -p 3000:3000 $APP_NAME npx nuxi init -t github:atinux/content-wind .
   docker run -it --rm -v $(pwd):$CONTAINER_MOUNT_PATH -p 3000:3000 $APP_NAME npm install
 }
 
@@ -15,7 +15,7 @@ dev() {
   if [ "$1" = "--build" ]; then
     docker build -t $APP_NAME .
   fi
-  docker run -it --rm -v $(pwd):$CONTAINER_MOUNT_PATH -p 3000:3000 -e CHOKIDAR_USEPOLLING=true $APP_NAME
+  docker run -it --rm -v $(pwd):$CONTAINER_MOUNT_PATH -p 3000:3000 -p 4000:4000 -e CHOKIDAR_USEPOLLING=true $APP_NAME
 }
 
 # Function to build and run the application in production mode
