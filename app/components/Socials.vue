@@ -49,6 +49,12 @@ const appConfig = useAppConfig();
       Github
     </a>
 
+    <!-- Location -->
+    <span v-if="appConfig.socials?.location" class="social-button text-sm text-gray-800 dark:text-gray-200">
+      <Icon name="i-lucide-map" class="icon" />
+      {{ appConfig.socials.location }}
+    </span>
+
     <!-- Email -->
     <a
       v-if="appConfig.socials?.email"
@@ -62,13 +68,7 @@ const appConfig = useAppConfig();
         <span class="italic text-blue-300"> {{ appConfig.socials.email }}</span>
       </span>
     </a>
-
-    <!-- Location -->
-    <span v-if="appConfig.socials?.location" class="social-button text-sm text-gray-800 dark:text-gray-200">
-      <Icon name="i-lucide-map" class="icon" />
-      {{ appConfig.socials.location }}
-    </span>
-
+    
   </div>
 </template>
 
