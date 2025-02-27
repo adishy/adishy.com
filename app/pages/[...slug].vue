@@ -22,7 +22,10 @@ useSeoMeta(page.value?.seo || {})
 </script>
 
 <template>
-  <NuxtLayout :name="page?.layout as LayoutKey || 'default'" class="bg-white dark:bg-gray-800 ring-1 ring-gray-200 dark:ring-gray-700">
+  <NuxtLayout 
+    :name="page?.layout as LayoutKey || 'default'" 
+    class="min-h-screen bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-950 ring-1 ring-gray-200 dark:ring-gray-700"
+  >
     <ContentRenderer
       v-if="page"
       :value="page"
