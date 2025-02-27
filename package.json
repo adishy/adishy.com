@@ -15,11 +15,14 @@
   "dependencies": {
     "@iconify-json/lucide": "^1.2.26",
     "@iconify-json/simple-icons": "^1.2.25",
+    "@notionhq/client": "^2.2.16",
     "@nuxt/content": "^3.1.1",
     "@nuxt/icon": "^1.10.3",
     "@nuxtjs/color-mode": "^3.5.2",
     "@tailwindcss/typography": "^0.5.16",
     "@tailwindcss/vite": "^4.0.7",
+    "dotenv": "^16.4.7",
+    "notion-to-md": "^3.1.6",
     "nuxt": "^3.15.4",
     "tailwindcss": "^4.0.7"
   },

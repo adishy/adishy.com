@@ -2,6 +2,15 @@
 
 APP_NAME="adishy"
 CONTAINER_MOUNT_PATH="/usr/src/app"
+ENV_FILE=".env.secrets"
+
+# Function to check for env file and create if it doesn't exist
+check_env() {
+  if [ ! -f "$ENV_FILE" ]; then
+    echo "⚠️ $ENV_FILE not found. Creating empty file..."
+    touch "$ENV_FILE"
+  fi
+}
 
 # Function to initialize a new Nuxt application
 init() {
@@ -12,27 +21,58 @@ init() {
 
 # Function to build and run the application in development mode
 dev() {
+  check_env
   if [ "$1" = "--build" ]; then
     docker build -t $APP_NAME .
   fi
-  docker run -it --rm -v $(pwd):$CONTAINER_MOUNT_PATH -p 3000:3000 -p 4000:4000 -e CHOKIDAR_USEPOLLING=true $APP_NAME
+  docker run -it --rm \
+    -v $(pwd):$CONTAINER_MOUNT_PATH \
+    -p 3000:3000 -p 4000:4000 \
+    --env-file $ENV_FILE \
+    -e CHOKIDAR_USEPOLLING=true \
+    $APP_NAME
 }
 
 # Function to build and run the application in production mode
 prod() {
+  check_env
   docker build -t $APP_NAME .
-  docker run -it --rm -v $(pwd):$CONTAINER_MOUNT_PATH -p 3000:3000 $APP_NAME npm run build
+  docker run -it --rm \
+    -v $(pwd):$CONTAINER_MOUNT_PATH \
+    -p 3000:3000 \
+    --env-file $ENV_FILE \
+    $APP_NAME npm run build
 }
 
 # Function to generate the website from markdown files
 generate() {
+  check_env
   docker build -t $APP_NAME .
-  docker run -it --rm -v $(pwd):$CONTAINER_MOUNT_PATH -p 3000:3000 $APP_NAME npm run generate
+  docker run -it --rm \
+    -v $(pwd):$CONTAINER_MOUNT_PATH \
+    -p 3000:3000 \
+    --env-file $ENV_FILE \
+    $APP_NAME npm run generate
 }
 
 # Function to run a shell in the container
 shell() {
-  docker run -it --rm -v $(pwd):$CONTAINER_MOUNT_PATH -p 3000:3000 $APP_NAME /bin/bash
+  check_env
+  docker run -it --rm \
+    -v $(pwd):$CONTAINER_MOUNT_PATH \
+    -p 3000:3000 \
+    --env-file $ENV_FILE \
+    $APP_NAME /bin/bash
+}
+
+# Function to test Notion integration
+test-notion() {
+  check_env
+  echo "🧪 Testing Notion integration..."
+  docker run -it --rm \
+    -v $(pwd):$CONTAINER_MOUNT_PATH \
+    --env-file $ENV_FILE \
+    $APP_NAME node scripts/test-notion.js
 }
 
 # Check the command line argument
@@ -52,7 +92,10 @@ case "$1" in
   shell)
     shell
     ;;
+  test-notion)
+    test-notion
+    ;;
   *)
-    echo "Usage: $0 {init|dev|prod|generate|shell}"
+    echo "Usage: $0 {init|dev|prod|generate|shell|test-notion}"
     exit 1
 esac 
