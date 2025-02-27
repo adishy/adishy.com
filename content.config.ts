@@ -1,16 +1,13 @@
-import { defineContentConfig, defineCollection, defineCollectionSource, z } from '@nuxt/content'
+import { defineContentConfig, defineCollectionSource, defineCollection, z } from '@nuxt/content'
 import { Client } from '@notionhq/client'
-import { NotionToMarkdown } from 'notion-to-md'
 
-// Check for required environment variables
 const NOTION_TOKEN = process.env.NOTION_TOKEN
 const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID
 
-let notion, n2m
+let notion
 
 if (NOTION_TOKEN && NOTION_DATABASE_ID) {
   notion = new Client({ auth: NOTION_TOKEN })
-  n2m = new NotionToMarkdown({ notionClient: notion })
   console.log('Notion source enabled')
 } else {
   console.warn('⚠️ Notion source disabled: Missing environment variables NOTION_TOKEN and/or NOTION_DATABASE_ID')
@@ -18,100 +15,100 @@ if (NOTION_TOKEN && NOTION_DATABASE_ID) {
 
 const notionSource = defineCollectionSource({
   getKeys: async () => {
-    console.log('🔍 [Notion Source] getKeys called')
-    if (!notion || !NOTION_DATABASE_ID) {
-      console.warn('🚫 [Notion Source] getKeys: Notion client or database ID not available')
-      return []
-    }
-
+    if (!notion || !NOTION_DATABASE_ID) return []
     try {
-      console.log('📚 [Notion Source] Querying database:', NOTION_DATABASE_ID)
       const response = await notion.databases.query({
         database_id: NOTION_DATABASE_ID,
         filter: {
           property: 'Status',
-          select: {
-            equals: 'Published'
-          }
+          select: { equals: 'Published' }
         }
       })
-
-      const keys = response.results.map(page => `${page.id}.md`)
-      console.log('✅ [Notion Source] Found keys:', keys)
-      return keys
+      return response.results.map(page => `${page.id}.json`)
     } catch (error) {
-      console.error('❌ [Notion Source] getKeys error:', error)
-      throw error
+      console.error('Error in getKeys:', error)
+      return []
     }
   },
-
   getItem: async (key) => {
-    console.log('🔍 [Notion Source] getItem called for:', key)
-    if (!notion || !n2m) {
-      console.warn('🚫 [Notion Source] getItem: Notion client not available')
-      return null
-    }
-
+    if (!notion) return null
     try {
-      const pageId = key.replace('.md', '')
-      console.log('📄 [Notion Source] Fetching page:', pageId)
-      
-      const page = await notion.pages.retrieve({ page_id: pageId })
-      const mdblocks = await n2m.pageToMarkdown(pageId)
-      const markdown = n2m.toMarkdownString(mdblocks)
-
-      const item = {
-        title: page.properties.Title.title[0].plain_text,
-        date: page.properties.Date?.date?.start,
-        content: markdown,
-        description: page.properties.Description?.rich_text?.[0]?.plain_text || '',
-        slug: `/writing/${pageId}`,
-        _id: pageId,
-        _type: 'markdown',
-        _source: 'notion'
+      const pageId = key.split('.')[0]
+      const pageData = await notion.pages.retrieve({ page_id: pageId })
+      let data = {
+        id: pageData.id,
+        object: pageData.object,
+        created_time: pageData.created_time,
+        last_edited_time: pageData.last_edited_time,
+        properties: pageData.properties,
+        url: pageData.url
       }
-
-      console.log('✅ [Notion Source] Successfully processed item:', {
-        id: pageId,
-        title: item.title,
-        slug: item.slug
-      })
-
-      return item
+      console.log(data)
+      return data;
     } catch (error) {
-      console.error('❌ [Notion Source] getItem error for key:', key, error)
-      throw error
+      console.error('Error in getItem:', error)
+      return null
     }
   }
 })
 
+const notionCollection = defineCollection({
+  type: 'data',
+  source: notionSource,
+  schema: z.object({
+    id: z.string(),
+    object: z.string(),
+    created_time: z.string(),
+    last_edited_time: z.string(),
+    properties: z.any(),
+    url: z.string()
+  })
+})
+
+
 export default defineContentConfig({
   collections: {
-    /**
-     * This is collection for content-wind theme
-     * Create `content.config.ts` in project root to overwrite this
-     */
     content: defineCollection({
       type: 'page',
       source: '**',
       schema: z.object({
-        layout: z.string(),
-      }),
-    }),
-
-    notion: defineCollection({
-      type: 'data',
-      source: notionSource,
-      schema: z.object({
-        title: z.string(),
-        date: z.string().optional(),
-        content: z.string(),
-        description: z.string().optional(),
-        slug: z.string(),
-        _id: z.string(),
-        _type: z.string(),
-        _source: z.string()
+        layout: z.string()
       })
-    })
-  },
+    }),
+    notion: notionCollection
+  }
 })
+
+// import { defineContentConfig, defineCollectionSource, defineCollection, z } from '@nuxt/content'
+
+// const hackernewsSource = defineCollectionSource({
+//   getKeys: () => {
+//     return fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
+//       .then(res => res.json())
+//       .then(data => data.map((key: string) => `${key}.json`))
+//   },
+//   getItem: (key: string) => {
+//     const id = key.split('.')[0]
+//     return fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
+//       .then(res => res.json())
+//   },
+// })
+
+// const hackernews = defineCollection({
+//   type: 'data',
+//   source: hackernewsSource,
+//   schema: z.object({
+//     title: z.string(),
+//     date: z.date(),
+//     type: z.string(),
+//     score: z.number(),
+//     url: z.string(),
+//     by: z.string(),
+//   }),
+// })
+
+// export default defineContentConfig({
+//   collections: {
+//     hackernews,
+//   },
+// })

@@ -1,6 +1,6 @@
 <script setup>
 const { data: posts } = await useAsyncData('posts', () => {
-  return queryContent('notion').sort({ date: -1 }).find()
+    return queryCollection('notion').all()
 })
 </script>
 
