@@ -5,6 +5,7 @@ export default defineAppConfig({
     linkedin: 'adishy',
     youtube: '@adishy',
     bluesky: 'adishy.com',
+    email: 'hello@adishy.com',
     location: 'Greater Boston Area',
   },
   icon: {
