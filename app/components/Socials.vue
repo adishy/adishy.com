@@ -95,7 +95,7 @@ const appConfig = useAppConfig();
   padding: 10px 20px;
   border-radius: 25px;
   border: 1px solid #444;
-  transition: background-color 0.3s ease, transform 0.3s ease;
+  transition: all 0.3s ease;
   color: inherit;
 }
 
@@ -104,8 +104,22 @@ const appConfig = useAppConfig();
 }
 
 .social-button:hover {
-  background: linear-gradient(45deg, var(--color-gray-700, #374151), var(--color-gray-500, #6B7280));
+  background: linear-gradient(85deg, var(--color-gray-700, #374151), var(--color-gray-500, #6B7280), var(--color-gray-700, #374151));
+  background-size: 200% 200%;
   color: var(--color-gray-100, #F3F4F6);
   transform: translateY(-2px);
+  animation: socialGradient 6s linear infinite;
+}
+
+@keyframes socialGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 </style>

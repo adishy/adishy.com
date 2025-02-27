@@ -31,7 +31,6 @@ async function testNotion() {
     
     console.log('✓ Successfully accessed database')
     console.log(`Found ${response.results.length} pages`)
-
   } catch (error) {
     console.error('❌ Error:', error.message)
     if (error.code === 'unauthorized') {

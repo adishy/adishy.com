@@ -27,6 +27,7 @@ dev() {
   fi
   docker run -it --rm \
     -v $(pwd):$CONTAINER_MOUNT_PATH \
+    -e NUXT_CONTENT_DEBUG=true \
     -p 3000:3000 -p 4000:4000 \
     --env-file $ENV_FILE \
     -e CHOKIDAR_USEPOLLING=true \
@@ -95,7 +96,10 @@ case "$1" in
   test-notion)
     test-notion
     ;;
+  test-content)
+    test-content
+    ;;
   *)
-    echo "Usage: $0 {init|dev|prod|generate|shell|test-notion}"
+    echo "Usage: $0 {init|dev|prod|generate|shell|test-notion|test-content}"
     exit 1
 esac 
