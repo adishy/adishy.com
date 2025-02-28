@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 const { data: posts } = await useAsyncData(() => {
   return queryCollection('notion')
-    .select('id', 'object', 'created_time', 'url')
+    .select('id', 'title', 'description', 'date', 'url')
     .all()
 })
 </script>
@@ -15,7 +15,9 @@ const { data: posts } = await useAsyncData(() => {
     >
       >
       <nuxt-link :to="post.url">
-        <strong>{{ post.url }}</strong>
+        <strong>{{ post.title }}</strong> 
+        <span>{{ post.date }}</span>
+        {{ post.description }}
       </nuxt-link>
     </p>
   </div>
