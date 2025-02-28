@@ -12,7 +12,7 @@ let n2m: NotionToMarkdown | undefined
 if (NOTION_TOKEN && NOTION_DATABASE_ID) {
   notion = new Client({ auth: NOTION_TOKEN })
   n2m = new NotionToMarkdown({ notionClient: notion })
-  console.log('Notion source enabled')
+  console.log('✅ Notion client initialized')
 } else {
   console.warn('⚠️ Notion source disabled: Missing environment variables NOTION_TOKEN and/or NOTION_DATABASE_ID')
 }
@@ -21,6 +21,7 @@ const notionSource = defineCollectionSource({
   getKeys: async () => {
     if (!notion || !NOTION_DATABASE_ID) return []
     try {
+      console.log('🔍 Querying Notion database:', NOTION_DATABASE_ID)
       const response = await notion.databases.query({
         database_id: NOTION_DATABASE_ID,
         filter: {
@@ -28,9 +29,10 @@ const notionSource = defineCollectionSource({
           select: { equals: 'Published' }
         }
       })
+      console.log(`✨ Found ${response.results.length} published pages`)
       return response.results.map((page: any) => `${page.id}.json`)
     } catch (error) {
-      console.error('Error in getKeys:', error)
+      console.error('❌ Error in getKeys:', error)
       return []
     }
   },
@@ -38,12 +40,16 @@ const notionSource = defineCollectionSource({
     if (!notion || !n2m) return JSON.stringify(null)
     try {
       const pageId = key.split('.')[0]!
+      console.log(`📄 Fetching page: ${pageId}`)
+
       const pageData = await notion.pages.retrieve({ page_id: pageId }) as PageObjectResponse
+
       const pageContent = await notion.blocks.children.list({ block_id: pageId })
       
       // Convert blocks to markdown
       const mdBlocks = await n2m.blocksToMarkdown(pageContent.results)
       const markdown = n2m.toMarkdownString(mdBlocks)
+      console.log('✍️ Converted content to markdown')
 
       // Extract properties with proper type handling
       const properties = pageData.properties
@@ -65,9 +71,12 @@ const notionSource = defineCollectionSource({
         body: markdown.parent,
         url: pageData.url
       }
+
+      console.log('✅ Processed page data:', data.title)
+
       return JSON.stringify(data)
     } catch (error) {
-      console.error('Error in getItem:', error)
+      console.error('❌ Error in getItem:', error)
       return JSON.stringify(null)
     }
   }
@@ -98,37 +107,3 @@ export default defineContentConfig({
     notion: notionCollection
   }
 })
-
-// import { defineContentConfig, defineCollectionSource, defineCollection, z } from '@nuxt/content'
-
-// const hackernewsSource = defineCollectionSource({
-//   getKeys: () => {
-//     return fetch('https://hacker-news.firebaseio.com/v0/topstories.json')
-//       .then(res => res.json())
-//       .then(data => data.map((key: string) => `${key}.json`))
-//   },
-//   getItem: (key: string) => {
-//     const id = key.split('.')[0]
-//     return fetch(`https://hacker-news.firebaseio.com/v0/item/${id}.json`)
-//       .then(res => res.json())
-//   },
-// })
-
-// const hackernews = defineCollection({
-//   type: 'data',
-//   source: hackernewsSource,
-//   schema: z.object({
-//     title: z.string(),
-//     date: z.date(),
-//     type: z.string(),
-//     score: z.number(),
-//     url: z.string(),
-//     by: z.string(),
-//   }),
-// })
-
-// export default defineContentConfig({
-//   collections: {
-//     hackernews,
-//   },
-// })
