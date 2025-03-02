@@ -11,8 +11,6 @@ const { data: page } = await useAsyncData(`page-${route.params.slug}`, () => {
   return queryCollection('content').path(route.path).first()
 })
 
-console.log(page)
-
 if (!page.value) {
   throw createError({
     statusCode: 404,

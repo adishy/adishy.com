@@ -1,6 +1,7 @@
 import { defineContentConfig, defineCollectionSource, defineCollection, z } from '@nuxt/content'
 import { Client } from '@notionhq/client'
 import { NotionToMarkdown } from 'notion-to-md'
+import { marked } from 'marked'
 import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints'
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN
@@ -49,7 +50,7 @@ const notionSource = defineCollectionSource({
       // Convert blocks to markdown
       const mdBlocks = await n2m.blocksToMarkdown(pageContent.results)
       const markdown = n2m.toMarkdownString(mdBlocks)
-      console.log('✍️ Converted content to markdown')
+      console.log('✍️ Converted content to markdown:')
 
       // Extract properties with proper type handling
       const properties = pageData.properties
@@ -59,7 +60,7 @@ const notionSource = defineCollectionSource({
       const description = properties.Description?.type === 'rich_text'
         ? properties.Description.rich_text[0]?.plain_text || ''
         : ''
-      const date = properties.Date?.type === 'date'
+      const postedDate = properties.Date?.type === 'date'
         ? properties.Date.date?.start || ''
         : ''
 
@@ -67,8 +68,8 @@ const notionSource = defineCollectionSource({
         id: pageData.id,
         title,
         description,
-        date,
-        body: markdown.parent,
+        postedDate,
+        body: marked.parse(markdown.parent?.trim()!).trim(),
         url: pageData.url
       }
 
@@ -89,7 +90,7 @@ const notionCollection = defineCollection({
     id: z.string(),
     title: z.string(),
     description: z.string(),
-    date: z.string(),
+    postedDate: z.string(),
     body: z.string(),
     url: z.string()
   })
