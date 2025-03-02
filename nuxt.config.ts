@@ -23,7 +23,11 @@ export default defineNuxtConfig({
         },
       },
     },
+    watch: {
+      enabled: false
+    }
   },
+
   future: {
     compatibilityVersion: 4,
   },
