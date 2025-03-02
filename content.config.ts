@@ -2,6 +2,7 @@ import { defineContentConfig, defineCollectionSource, defineCollection, z } from
 import { Client } from '@notionhq/client'
 import { NotionToMarkdown } from 'notion-to-md'
 import { marked } from 'marked'
+import { JSDOM } from 'jsdom'
 import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints'
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN
@@ -16,6 +17,39 @@ if (NOTION_TOKEN && NOTION_DATABASE_ID) {
   console.log('✅ Notion client initialized')
 } else {
   console.warn('⚠️ Notion source disabled: Missing environment variables NOTION_TOKEN and/or NOTION_DATABASE_ID')
+}
+
+// Function to clean HTML by removing unnecessary whitespace between elements
+// while preserving whitespace within elements
+function cleanHtml(html: string): string {
+  // Create a new JSDOM instance
+  const dom = new JSDOM('');
+  const document = dom.window.document;
+  
+  // Create a temporary container
+  const container = document.createElement('div');
+  container.innerHTML = html;
+  
+  // Function to clean node
+  function cleanNode(node: Node) {
+    if (node.nodeType === 3) { // Text node
+      // Only trim if it's between elements (parent is div and has element siblings)
+      const parent = node.parentElement;
+      if (parent && parent.tagName === 'DIV' && 
+          ((node.previousSibling && node.previousSibling.nodeType === 1) ||
+           (node.nextSibling && node.nextSibling.nodeType === 1))) {
+        node.textContent = node.textContent?.trim() || '';
+      }
+    } else if (node.nodeType === 1) { // Element node
+      Array.from(node.childNodes).forEach(cleanNode);
+    }
+  }
+  
+  // Clean the container
+  cleanNode(container);
+  
+  // Return cleaned HTML
+  return container.innerHTML;
 }
 
 const notionSource = defineCollectionSource({
@@ -49,8 +83,8 @@ const notionSource = defineCollectionSource({
       
       // Convert blocks to markdown
       const mdBlocks = await n2m.blocksToMarkdown(pageContent.results)
-      const markdown = n2m.toMarkdownString(mdBlocks)
-      console.log('✍️ Converted content to markdown:')
+      const markdown = await n2m.toMarkdownString(mdBlocks)
+      const markdownContent = typeof markdown === 'string' ? markdown : markdown.parent
 
       // Extract properties with proper type handling
       const properties = pageData.properties
@@ -64,12 +98,16 @@ const notionSource = defineCollectionSource({
         ? properties.Date.date?.start || ''
         : ''
 
+      // Parse markdown to HTML and clean it
+      const parsedHtml = marked.parse(String(markdownContent || '').trim());
+      const cleanedHtml = cleanHtml(parsedHtml);
+
       const data = {
         id: pageData.id,
         title,
         description,
         postedDate,
-        body: marked.parse(markdown.parent?.trim()!).trim(),
+        body: cleanedHtml.trim(),
         url: pageData.url
       }
 

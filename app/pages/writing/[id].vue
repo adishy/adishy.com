@@ -6,7 +6,7 @@ definePageMeta({
 })
 
 const { data: post } = await useAsyncData(`post-${route.params.id}`, () => {
-  console.log("Route params:", route.params.id);
+
   return queryCollection('notion')
     .where('id', '=', `notion/${route.params.id}.json`)
     .select('id', 'title', 'description', 'postedDate', 'url', 'body')
