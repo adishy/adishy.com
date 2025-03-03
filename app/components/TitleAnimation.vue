@@ -32,8 +32,8 @@ useHead({
 </script>
 
 <template>
-  <div class="relative flex justify-center items-center">
-    <h1 class="relative z-10 text-5xl font-bold tracking-normal leading-normal font-['Inter']">
+  <div class="relative flex justify-center items-center w-full">
+    <h1 class="relative z-10 font-bold tracking-normal leading-normal font-['Inter'] title-responsive">
       <span 
         v-for="({ letter, isSpace, style }, index) in letters" 
         :key="index"
@@ -51,6 +51,16 @@ useHead({
 </template>
 
 <style scoped>
+/* Add responsive title class */
+.title-responsive {
+  /* clamp(minimum, preferred, maximum) */
+  min-width: 305px;
+  font-size: clamp(2rem, min(5vw, 3rem), 3rem);
+  width: 100%;
+  text-align: center;
+  padding-inline: 1rem;
+}
+
 .aurora-letter {
   background: linear-gradient(
     145deg,
