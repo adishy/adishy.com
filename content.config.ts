@@ -2,7 +2,6 @@ import { defineContentConfig, defineCollectionSource, defineCollection, z } from
 import { Client } from '@notionhq/client'
 import { NotionToMarkdown } from 'notion-to-md'
 import { marked } from 'marked'
-import { JSDOM } from 'jsdom'
 import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints'
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN
@@ -19,37 +18,17 @@ if (NOTION_TOKEN && NOTION_DATABASE_ID) {
   console.warn('⚠️ Notion source disabled: Missing environment variables NOTION_TOKEN and/or NOTION_DATABASE_ID')
 }
 
-// Function to clean HTML by removing unnecessary whitespace between elements
-// while preserving whitespace within elements
+// Function to clean HTML by removing unnecessary newlines between tags
 function cleanHtml(html: string): string {
-  // Create a new JSDOM instance
-  const dom = new JSDOM('');
-  const document = dom.window.document;
-  
-  // Create a temporary container
-  const container = document.createElement('div');
-  container.innerHTML = html;
-  
-  // Function to clean node
-  function cleanNode(node: Node) {
-    if (node.nodeType === 3) { // Text node
-      // Only trim if it's between elements (parent is div and has element siblings)
-      const parent = node.parentElement;
-      if (parent && parent.tagName === 'DIV' && 
-          ((node.previousSibling && node.previousSibling.nodeType === 1) ||
-           (node.nextSibling && node.nextSibling.nodeType === 1))) {
-        node.textContent = node.textContent?.trim() || '';
-      }
-    } else if (node.nodeType === 1) { // Element node
-      Array.from(node.childNodes).forEach(cleanNode);
-    }
-  }
-  
-  // Clean the container
-  cleanNode(container);
-  
-  // Return cleaned HTML
-  return container.innerHTML;
+  return html
+    // Remove newlines between closing and opening tags
+    .replace(/>\s*\n+\s*</g, '><')
+    // Remove newlines after opening tags
+    .replace(/<([^>]+)>\s*\n+/g, '<$1>')
+    // Remove newlines before closing tags
+    .replace(/\s*\n+\s*(<\/[^>]+>)/g, '$1')
+    // Preserve single space between text content
+    .replace(/>\s{2,}</g, '> <');
 }
 
 const notionSource = defineCollectionSource({
