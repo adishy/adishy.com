@@ -38,8 +38,9 @@ useSeoMeta({
           {{ post.title }}
         </h1>
         
-        <div class="flex justify-center items-center space-x-4 text-sm text-gray-500 dark:text-gray-400 mt-4 mb-8">
+        <div class="flex justify-center items-center space-x-4 text-sm text-gray-500 dark:text-gray-400 -mt-4 mb-8">
           <time>
+            <Icon name="i-lucide-calendar" class="icon" />
             {{ new Date(post.postedDate).toLocaleDateString('en-US', { 
               year: 'numeric',
               month: 'short',
