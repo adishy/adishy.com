@@ -44,20 +44,20 @@ const notionSource = defineCollectionSource({
         }
       })
       console.log(`✨ Found ${response.results.length} published pages`)
-      return response.results.map((page: any) => `${page.id}.json`)
+      // Return markdown file names instead of JSON
+      return response.results.map((page: any) => `${page.id}.md`)
     } catch (error) {
       console.error('❌ Error in getKeys:', error)
       return []
     }
   },
   getItem: async (key: string): Promise<string> => {
-    if (!notion || !n2m) return JSON.stringify(null)
+    if (!notion || !n2m) return ''
     try {
       const pageId = key.split('.')[0]!
       console.log(`📄 Fetching page: ${pageId}`)
 
       const pageData = await notion.pages.retrieve({ page_id: pageId }) as PageObjectResponse
-
       const pageContent = await notion.blocks.children.list({ block_id: pageId })
       
       // Convert blocks to markdown
@@ -77,39 +77,40 @@ const notionSource = defineCollectionSource({
         ? properties.Date.date?.start || ''
         : ''
 
-      // Parse markdown to HTML and clean it
-      const parsedHtml = marked.parse(String(markdownContent || '').trim());
-      const cleanedHtml = cleanHtml(parsedHtml);
+      // Format as a markdown file with frontmatter
+      const frontmatter = `---
+title: ${title}
+description: ${description}
+postedDate: ${postedDate}
+url: ${pageData.url}
+id: ${pageData.id}
+---
 
-      const data = {
-        id: pageData.id,
-        title,
-        description,
-        postedDate,
-        body: cleanedHtml.trim(),
-        url: pageData.url
-      }
+`;
 
-      console.log('✅ Processed page data:', data.title)
+      // Return complete markdown file with frontmatter
+      const content = frontmatter + (markdownContent || '').trim();
+      console.log('✅ Processed page data:', title)
 
-      return JSON.stringify(data)
+      return content
     } catch (error) {
       console.error('❌ Error in getItem:', error)
-      return JSON.stringify(null)
+      return ''
     }
   }
 })
 
 const notionCollection = defineCollection({
-  type: 'data',
+  // Use 'page' type instead of 'content'
+  type: 'page',
   source: notionSource,
+  // Schema for the frontmatter
   schema: z.object({
-    id: z.string(),
     title: z.string(),
     description: z.string(),
     postedDate: z.string(),
-    body: z.string(),
-    url: z.string()
+    url: z.string(),
+    id: z.string()
   })
 })
 
