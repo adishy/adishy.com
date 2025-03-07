@@ -1,7 +1,6 @@
 import { defineContentConfig, defineCollectionSource, defineCollection, z } from '@nuxt/content'
 import { Client } from '@notionhq/client'
 import { NotionToMarkdown } from 'notion-to-md'
-import { marked } from 'marked'
 import type { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints'
 
 const NOTION_TOKEN = process.env.NOTION_TOKEN
@@ -16,19 +15,6 @@ if (NOTION_TOKEN && NOTION_DATABASE_ID) {
   console.log('✅ Notion client initialized')
 } else {
   console.warn('⚠️ Notion source disabled: Missing environment variables NOTION_TOKEN and/or NOTION_DATABASE_ID')
-}
-
-// Function to clean HTML by removing unnecessary newlines between tags
-function cleanHtml(html: string): string {
-  return html
-    // Remove newlines between closing and opening tags
-    .replace(/>\s*\n+\s*</g, '><')
-    // Remove newlines after opening tags
-    .replace(/<([^>]+)>\s*\n+/g, '<$1>')
-    // Remove newlines before closing tags
-    .replace(/\s*\n+\s*(<\/[^>]+>)/g, '$1')
-    // Preserve single space between text content
-    .replace(/>\s{2,}</g, '> <');
 }
 
 const notionSource = defineCollectionSource({
