@@ -1,6 +1,7 @@
 <script setup>
 const { data: posts } = await useAsyncData('notion-posts', () => {
   return queryCollection('notion')
+    .where('section', '=', 'Writing')
     .select('id', 'title', 'description', 'postedDate', 'url')
     .order('postedDate', 'DESC')
     .all();
@@ -20,7 +21,7 @@ const { data: posts } = await useAsyncData('notion-posts', () => {
     <div v-else class="space-y-1">
       <article 
         v-for="post in posts" 
-        :key="post._id" 
+        :key="post.id" 
         class="post-card group border-b border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors duration-200"
       >
         <NuxtLink :to="`/writing/${post.id.replace(/^notion\/|\.md$/g, '')}`" class="block px-3 no-underline -mt-2">

@@ -62,6 +62,9 @@ const notionSource = defineCollectionSource({
       const postedDate = properties.Date?.type === 'date'
         ? properties.Date.date?.start || ''
         : ''
+      const section = properties.Section?.type === 'select'
+        ? properties.Section.select?.name || ''
+        : ''
 
       // Format as a markdown file with frontmatter
       const frontmatter = `---
@@ -70,6 +73,7 @@ description: ${description}
 postedDate: ${postedDate}
 url: ${pageData.url}
 id: ${pageData.id}
+section: ${section}
 ---
 
 `;
@@ -96,7 +100,8 @@ const notionCollection = defineCollection({
     description: z.string(),
     postedDate: z.string(),
     url: z.string(),
-    id: z.string()
+    id: z.string(),
+    section: z.string()
   })
 })
 
