@@ -7,6 +7,14 @@ import type { LayoutKey } from '#build/types/layouts'
 const route = useRoute()
 
 const { data: page } = await useAsyncData(`notion-${route.params.slug}`, () => {
+  // Handle root page
+  if (!route.params.slug || route.params.slug.length === 0) {
+    return queryCollection('notion')
+      .where('section', '=', 'Nav')
+      .order('postedDate', 'ASC')
+      .first()
+  }
+  
   return queryCollection('notion')
     .where('id', '=', `notion/${route.params.slug}.md`)
     .first()
