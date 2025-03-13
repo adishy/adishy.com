@@ -15,8 +15,13 @@ const { data: page } = await useAsyncData(`notion-${route.params.slug}`, () => {
       .first()
   }
   
+  // Join slug parts to match pageSlug format
+  const slug = Array.isArray(route.params.slug) 
+    ? route.params.slug.join('/')
+    : route.params.slug
+
   return queryCollection('notion')
-    .where('id', '=', `notion/${route.params.slug}.md`)
+    .where('pageSlug', '=', slug)
     .first()
 })
 

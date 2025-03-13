@@ -2,6 +2,7 @@
 const { data: notionNavigation } = await useAsyncData('notion-navigation', () => {
   return queryCollection('notion')
     .where('section', '=', 'Nav')
+    .select('pageSlug', 'title', 'notionId', 'postedDate')
     .order('postedDate', 'ASC')
     .all()
 })
@@ -13,8 +14,8 @@ const { data: notionNavigation } = await useAsyncData('notion-navigation', () =>
     <div class="text-gray-700 dark:text-gray-200">
       <NuxtLink
         v-for="item in notionNavigation"
-        :key="item.id"
-        :to="`/${item.id.replace(/^notion\/|\.md$/g, '')}`"
+        :key="item.notionId"
+        :to="`/${item.pageSlug}`"
         class="mr-6"
         active-class="font-bold"
       >

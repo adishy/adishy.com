@@ -66,10 +66,25 @@ const notionSource = defineCollectionSource({
       const section = properties.Section?.type === 'select'
         ? properties.Section.select?.name || ''
         : ''
-      // Extract layout with default value
       const layout = properties.Layout?.type === 'select'
         ? properties.Layout.select?.name || 'default'
         : 'default'
+
+      // Generate URL-friendly title
+      const urlTitle = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+
+      // Format date for non-Nav sections
+      const dateStr = section !== 'Nav' && postedDate
+        ? `-${new Date(postedDate).toISOString().split('T')[0]}`
+        : ''
+
+      // Generate pageSlug based on section
+      const pageSlug = section === 'Nav'
+        ? urlTitle
+        : `${section.toLowerCase()}/${urlTitle}${dateStr}`
 
       // Format as a markdown file with frontmatter
       const frontmatter = `---
@@ -77,7 +92,8 @@ title: ${title}
 description: ${description}
 postedDate: ${postedDate}
 url: ${pageData.url}
-id: ${pageData.id}
+notionId: ${pageId}
+pageSlug: ${pageSlug}
 section: ${section}
 layout: ${layout}
 ---
@@ -86,7 +102,7 @@ layout: ${layout}
 
       // Return complete markdown file with frontmatter
       const content = frontmatter + (markdownContent || '').trim();
-      console.log(`✅ Processed page data: [${section}][layout: ${layout}]: ${title}`)
+      console.log(`✅ Processed page data: [${section}][layout: ${layout}]: ${title} (${pageSlug})`)
 
       return content
     } catch (error) {
@@ -97,17 +113,15 @@ layout: ${layout}
 })
 
 const notionCollection = defineCollection({
-  // Use 'page' type instead of 'content'
   type: 'page',
   source: notionSource,
-  // Schema for the frontmatter
   schema: z.object({
-    index: z.number(),
     title: z.string(),
     description: z.string(),
     postedDate: z.string(),
     url: z.string(),
-    id: z.string(),
+    notionId: z.string(),
+    pageSlug: z.string(),
     section: z.string(),
     layout: z.enum(['default', 'full-width', 'posts']).default('default')
   })

@@ -9,9 +9,8 @@ definePageMeta({
 const { data: post } = await useAsyncData(`post-${route.params.id}`, async () => {
   console.log("Route", route.params.id)
   return queryCollection('notion')
-    .where('id', '=', `notion/${route.params.id}.md`)
+    .where('pageSlug', '=', `writing/${route.params.id}`)
     .first()
-    
 })
 
 if (!post.value) {
