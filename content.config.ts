@@ -65,6 +65,10 @@ const notionSource = defineCollectionSource({
       const section = properties.Section?.type === 'select'
         ? properties.Section.select?.name || ''
         : ''
+      // Extract layout with default value
+      const layout = properties.Layout?.type === 'select'
+        ? properties.Layout.select?.name || 'default'
+        : 'default'
 
       // Format as a markdown file with frontmatter
       const frontmatter = `---
@@ -74,6 +78,7 @@ postedDate: ${postedDate}
 url: ${pageData.url}
 id: ${pageData.id}
 section: ${section}
+layout: ${layout}
 ---
 
 `;
@@ -101,7 +106,8 @@ const notionCollection = defineCollection({
     postedDate: z.string(),
     url: z.string(),
     id: z.string(),
-    section: z.string()
+    section: z.string(),
+    layout: z.enum(['default', 'full-width', 'posts']).default('default')
   })
 })
 

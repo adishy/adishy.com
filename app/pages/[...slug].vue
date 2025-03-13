@@ -7,9 +7,26 @@ import type { LayoutKey } from '#build/types/layouts'
 
 const route = useRoute()
 
-const { data: page } = await useAsyncData(`page-${route.params.slug}`, () => {
+// First try to get from content collection
+const { data: contentPage } = await useAsyncData(`content-${route.params.slug}`, () => {
   return queryCollection('content').path(route.path).first()
 })
+
+// If not found in content, try notion collection
+const { data: notionPage } = await useAsyncData(`notion-${route.params.slug}`, async () => {
+  if (contentPage.value) return null
+  return queryCollection('notion')
+    .where('id', '=', `notion/${route.params.slug}.md`)
+    .first()
+})
+
+// Use either content or notion page
+const page = computed(() => contentPage.value || notionPage.value)
+
+// Get layout from page or default
+const layout = computed<LayoutKey>(() => 
+  (page.value?.layout as LayoutKey) || 'default'
+)
 
 if (!page.value) {
   throw createError({
@@ -23,7 +40,7 @@ useSeoMeta(page.value?.seo || {})
 
 <template>
   <NuxtLayout 
-    :name="page?.layout as LayoutKey || 'default'" 
+    :name="layout"
     class="min-h-screen animate-gradient bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-950 ring-1 ring-gray-200 dark:ring-gray-700"
   >
     <ContentRenderer
