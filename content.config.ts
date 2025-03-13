@@ -17,6 +17,7 @@ if (NOTION_TOKEN && NOTION_DATABASE_ID) {
   console.warn('⚠️ Notion source disabled: Missing environment variables NOTION_TOKEN and/or NOTION_DATABASE_ID')
 }
 
+
 const notionSource = defineCollectionSource({
   getKeys: async () => {
     if (!notion || !NOTION_DATABASE_ID) return []
@@ -62,6 +63,28 @@ const notionSource = defineCollectionSource({
       const postedDate = properties.Date?.type === 'date'
         ? properties.Date.date?.start || ''
         : ''
+      const section = properties.Section?.type === 'select'
+        ? properties.Section.select?.name || ''
+        : ''
+      const layout = properties.Layout?.type === 'select'
+        ? properties.Layout.select?.name || 'default'
+        : 'default'
+
+      // Generate URL-friendly title
+      const urlTitle = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '')
+
+      // Format date for non-Nav sections
+      const dateStr = section !== 'Nav' && postedDate
+        ? `-${new Date(postedDate).toISOString().split('T')[0]}`
+        : ''
+
+      // Generate pageSlug based on section
+      const pageSlug = section === 'Nav'
+        ? urlTitle
+        : `${section.toLowerCase()}/${urlTitle}${dateStr}`
 
       // Format as a markdown file with frontmatter
       const frontmatter = `---
@@ -69,14 +92,17 @@ title: ${title}
 description: ${description}
 postedDate: ${postedDate}
 url: ${pageData.url}
-id: ${pageData.id}
+notionId: ${pageId}
+pageSlug: ${pageSlug}
+section: ${section}
+layout: ${layout}
 ---
 
 `;
 
       // Return complete markdown file with frontmatter
       const content = frontmatter + (markdownContent || '').trim();
-      console.log('✅ Processed page data:', title)
+      console.log(`✅ Processed page data: [${section}][layout: ${layout}]: ${title} (${pageSlug})`)
 
       return content
     } catch (error) {
@@ -87,28 +113,36 @@ id: ${pageData.id}
 })
 
 const notionCollection = defineCollection({
-  // Use 'page' type instead of 'content'
   type: 'page',
   source: notionSource,
-  // Schema for the frontmatter
   schema: z.object({
     title: z.string(),
     description: z.string(),
     postedDate: z.string(),
     url: z.string(),
-    id: z.string()
+    notionId: z.string(),
+    pageSlug: z.string(),
+    section: z.string(),
+    layout: z.enum(['default', 'full-width', 'posts']).default('default')
   })
 })
 
 export default defineContentConfig({
   collections: {
+    // Keep content collection for future use but not actively used
     content: defineCollection({
       type: 'page',
       source: '**',
       schema: z.object({
-        layout: z.string()
+        title: z.string().optional(),
+        description: z.string().optional(),
+        layout: z.string().optional(),
+        navigation: z.object({
+          title: z.string()
+        }).optional()
       })
     }),
+    // Primary content source
     notion: notionCollection
   }
 })

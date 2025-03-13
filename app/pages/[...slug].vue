@@ -1,15 +1,34 @@
 <script setup lang="ts">
 /**
- * Document driven is removed in Content v3.
- * This page is a simple/full-feature replacement of document driven.
+ * Simple page component that renders notion pages based on their layout
  */
 import type { LayoutKey } from '#build/types/layouts'
 
 const route = useRoute()
 
-const { data: page } = await useAsyncData(`page-${route.params.slug}`, () => {
-  return queryCollection('content').path(route.path).first()
+const { data: page } = await useAsyncData(`notion-${route.params.slug}`, () => {
+  // Handle root page
+  if (!route.params.slug || route.params.slug.length === 0) {
+    return queryCollection('notion')
+      .where('section', '=', 'Nav')
+      .order('postedDate', 'ASC')
+      .first()
+  }
+  
+  // Join slug parts to match pageSlug format
+  const slug = Array.isArray(route.params.slug) 
+    ? route.params.slug.join('/')
+    : route.params.slug
+
+  return queryCollection('notion')
+    .where('pageSlug', '=', slug)
+    .first()
 })
+
+// Get layout from page or default
+const layout = computed<LayoutKey>(() => 
+  (page.value?.layout as LayoutKey) || 'default'
+)
 
 if (!page.value) {
   throw createError({
@@ -18,12 +37,15 @@ if (!page.value) {
   })
 }
 
-useSeoMeta(page.value?.seo || {})
+useSeoMeta({
+  title: page.value.title,
+  description: page.value.description
+})
 </script>
 
 <template>
   <NuxtLayout 
-    :name="page?.layout as LayoutKey || 'default'" 
+    :name="layout"
     class="min-h-screen animate-gradient bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-800 dark:via-gray-900 dark:to-gray-950 ring-1 ring-gray-200 dark:ring-gray-700"
   >
     <ContentRenderer

@@ -11,7 +11,7 @@ useSeoMeta({
   <div class="sm:pt-6 sm:pb-10">
     <Html lang="en" />
     <NuxtLoadingIndicator />
-    <AppNavbar />
+    <NotionNavbar />
     <NuxtPage />
   </div>
 </template>
