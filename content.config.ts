@@ -17,6 +17,7 @@ if (NOTION_TOKEN && NOTION_DATABASE_ID) {
   console.warn('⚠️ Notion source disabled: Missing environment variables NOTION_TOKEN and/or NOTION_DATABASE_ID')
 }
 
+
 const notionSource = defineCollectionSource({
   getKeys: async () => {
     if (!notion || !NOTION_DATABASE_ID) return []
@@ -85,7 +86,7 @@ layout: ${layout}
 
       // Return complete markdown file with frontmatter
       const content = frontmatter + (markdownContent || '').trim();
-      console.log('✅ Processed page data:', title)
+      console.log(`✅ Processed page data: [${section}][layout: ${layout}]: ${title}`)
 
       return content
     } catch (error) {
@@ -101,6 +102,7 @@ const notionCollection = defineCollection({
   source: notionSource,
   // Schema for the frontmatter
   schema: z.object({
+    index: z.number(),
     title: z.string(),
     description: z.string(),
     postedDate: z.string(),
@@ -113,13 +115,20 @@ const notionCollection = defineCollection({
 
 export default defineContentConfig({
   collections: {
+    // Keep content collection for future use but not actively used
     content: defineCollection({
       type: 'page',
       source: '**',
       schema: z.object({
-        layout: z.string()
+        title: z.string().optional(),
+        description: z.string().optional(),
+        layout: z.string().optional(),
+        navigation: z.object({
+          title: z.string()
+        }).optional()
       })
     }),
+    // Primary content source
     notion: notionCollection
   }
 })

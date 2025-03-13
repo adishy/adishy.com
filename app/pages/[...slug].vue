@@ -1,27 +1,16 @@
 <script setup lang="ts">
 /**
- * Document driven is removed in Content v3.
- * This page is a simple/full-feature replacement of document driven.
+ * Simple page component that renders notion pages based on their layout
  */
 import type { LayoutKey } from '#build/types/layouts'
 
 const route = useRoute()
 
-// First try to get from content collection
-const { data: contentPage } = await useAsyncData(`content-${route.params.slug}`, () => {
-  return queryCollection('content').path(route.path).first()
-})
-
-// If not found in content, try notion collection
-const { data: notionPage } = await useAsyncData(`notion-${route.params.slug}`, async () => {
-  if (contentPage.value) return null
+const { data: page } = await useAsyncData(`notion-${route.params.slug}`, () => {
   return queryCollection('notion')
     .where('id', '=', `notion/${route.params.slug}.md`)
     .first()
 })
-
-// Use either content or notion page
-const page = computed(() => contentPage.value || notionPage.value)
 
 // Get layout from page or default
 const layout = computed<LayoutKey>(() => 
@@ -35,7 +24,10 @@ if (!page.value) {
   })
 }
 
-useSeoMeta(page.value?.seo || {})
+useSeoMeta({
+  title: page.value.title,
+  description: page.value.description
+})
 </script>
 
 <template>

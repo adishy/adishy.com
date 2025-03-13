@@ -2,6 +2,7 @@
 const { data: notionNavigation } = await useAsyncData('notion-navigation', () => {
   return queryCollection('notion')
     .where('section', '=', 'Nav')
+    .order('postedDate', 'ASC')
     .all()
 })
 </script>
